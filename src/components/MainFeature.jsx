@@ -4,6 +4,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 
+import Confetti from 'react-confetti';
 // Icons
 const RefreshIcon = getIcon('refresh-cw');
 const HelpCircleIcon = getIcon('help-circle');
@@ -13,6 +14,9 @@ const ClockIcon = getIcon('clock');
 const ArrowRightIcon = getIcon('arrow-right');
 const LightbulbIcon = getIcon('lightbulb');
 const XIcon = getIcon('x');
+const StarIcon = getIcon('star');
+const TrophyIcon = getIcon('trophy');
+const PartyPopperIcon = getIcon('party-popper');
 
 // Card Component
 const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
@@ -258,6 +262,9 @@ const MainFeature = ({ difficulty, onRestart }) => {
   const [foundation, setFoundation] = useState([[], [], [], []]);
   const [tableau, setTableau] = useState([[], [], [], [], [], [], []]);
   const [showRules, setShowRules] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [flyingCards, setFlyingCards] = useState([]);
+  const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [showGameOver, setShowGameOver] = useState(false);
 
   // Initialize game
@@ -677,6 +684,49 @@ const MainFeature = ({ difficulty, onRestart }) => {
     const valueName = valueNames[card.value] || card.value.toString();
     return `${valueName} of ${card.suit.charAt(0).toUpperCase() + card.suit.slice(1)}`;
   };
+  
+  // Create flying card animations
+  const createFlyingCards = () => {
+    const cards = [];
+    for (let i = 0; i < 20; i++) {
+      // Random position values
+      const left = Math.random() * window.innerWidth;
+      const top = Math.random() * window.innerHeight;
+      
+      // Random end position
+      const tx = (Math.random() - 0.5) * window.innerWidth * 2;
+      const ty = -window.innerHeight - Math.random() * 300;
+      const rotate = (Math.random() - 0.5) * 720; // -360 to 360 degrees
+      
+      // Random card color (red or black)
+      const isRed = Math.random() > 0.5;
+      
+      cards.push({
+        id: i,
+        left,
+        top,
+        style: {
+          left: `${left}px`,
+          top: `${top}px`,
+          '--tx': `${tx}px`,
+          '--ty': `${ty}px`,
+          '--rotate': `${rotate}deg`,
+          backgroundColor: isRed ? '#fef2f2' : '#ffffff',
+          animationDelay: `${Math.random() * 1}s`,
+          borderColor: isRed ? '#ef4444' : '#1e293b'
+        }
+      });
+    }
+    return cards;
+  };
+  
+  // Play victory sound
+  const playVictorySound = () => {
+    const audio = new Audio();
+    audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3';
+    audio.volume = 0.5;
+    audio.play().catch(e => console.log('Audio play failed:', e));
+  };
 
   // Handle game over
   const handleGameOver = (isWin) => {
@@ -685,9 +735,19 @@ const MainFeature = ({ difficulty, onRestart }) => {
       isGameOver: true,
       isGameWon: isWin
     }));
+    
     setShowGameOver(true);
 
     if (isWin) {
+      // Start victory celebrations
+      setShowConfetti(true);
+      playVictorySound();
+      setFlyingCards(createFlyingCards());
+      
+      // Stop confetti after 7 seconds
+      setTimeout(() => {
+        setShowConfetti(false);
+      }, 7000);
       // Calculate final score based on time, moves, and difficulty
       const timeBonus = settings.timeLimit 
         ? Math.floor((settings.timeLimit - gameState.time) * 2) 
@@ -926,20 +986,39 @@ const MainFeature = ({ difficulty, onRestart }) => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+            exit={{ opacity: 0, transition: { delay: 0.3 } }}
+            className={`fixed inset-0 ${gameState.isGameWon ? 'bg-black/30' : 'bg-black/50'} flex items-center justify-center p-4 z-50`}
           >
+            {showConfetti && gameState.isGameWon && (
+              <Confetti
+                width={windowSize.width}
+                height={windowSize.height}
+                recycle={false}
+                numberOfPieces={500}
+                gravity={0.2}
+              />
+            )}
+            
+            {/* Flying cards animation */}
+            {gameState.isGameWon && flyingCards.map(card => (
+              <div 
+                key={card.id} 
+                className="flying-card" 
+                style={card.style}
+              ></div>
+            ))}
+            
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white dark:bg-surface-800 rounded-xl p-6 max-w-md w-full text-center"
+              className={`bg-white dark:bg-surface-800 rounded-xl p-6 max-w-md w-full text-center shadow-xl ${gameState.isGameWon ? 'ring-4 ring-primary/20' : ''}`}
             >
               <div className="mb-4">
                 {gameState.isGameWon ? (
-                  <div className="w-20 h-20 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
-                    <AwardIcon className="w-12 h-12 text-primary" />
-                  </div>
+                  <motion.div whileHover={{ rotate: 10 }} className="w-24 h-24 mx-auto bg-primary/20 rounded-full flex items-center justify-center">
+                    <TrophyIcon className="w-14 h-14 text-primary" />
+                  </motion.div>
                 ) : (
                   <div className="w-20 h-20 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
                     <ClockIcon className="w-12 h-12 text-red-500" />
@@ -951,14 +1030,23 @@ const MainFeature = ({ difficulty, onRestart }) => {
                 {gameState.isGameWon ? 'Congratulations!' : 'Game Over'}
               </h2>
               
-              <p className="text-surface-600 dark:text-surface-300 mb-6">
+              <h2 className={`${gameState.isGameWon ? 'text-3xl' : 'text-2xl'} font-bold mb-2 flex items-center justify-center`}>
                 {gameState.isGameWon 
+                {gameState.isGameWon && <StarIcon className="w-6 h-6 text-yellow-400 ml-2" />}
                   ? 'You successfully completed the game!' 
                   : 'Time\'s up! Better luck next time.'}
               </p>
 
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="bg-surface-100 dark:bg-surface-700 p-3 rounded-lg">
+                  ? (
+                    <motion.span 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      You mastered the challenge in <strong>{formatTime(gameState.time)}</strong> with <strong>{gameState.moves}</strong> moves!
+                    </motion.span>
+                  )
+                  : 'Time\'s up! Better luck next time.'}
                   <div className="text-surface-500 text-sm">Score</div>
                   <div className="text-xl font-bold">{Math.floor(gameState.score)}</div>
                 </div>
@@ -975,14 +1063,40 @@ const MainFeature = ({ difficulty, onRestart }) => {
                   <div className="text-xl font-bold">{difficulty}</div>
                 </div>
               </div>
-
-              <div className="flex gap-3">
+                  <div className="text-surface-500 text-sm flex items-center justify-center space-x-1">
+                    <span>Difficulty</span>
+                  </div>
+                  <div className={`text-xl font-bold ${
+                    difficulty === 'Easy' ? 'text-green-500' : 
+                    difficulty === 'Normal' ? 'text-blue-500' : 
+                    'text-purple-500'
+                  }`}>{difficulty}</div>
                 <button
                   onClick={() => {
                     setShowGameOver(false);
+              {gameState.isGameWon && (
+                <motion.div 
+                  className="mb-6 p-3 bg-primary/10 rounded-lg text-primary-dark"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <div className="flex items-center justify-center mb-2">
+                    <PartyPopperIcon className="w-5 h-5 mr-2" />
+                    <span className="font-medium">Achievement Unlocked!</span>
+                  </div>
+                  <p className="text-sm">
+                    {difficulty === 'Easy' ? 'Solitaire Novice' : 
+                     difficulty === 'Normal' ? 'Solitaire Master' : 
+                     'Solitaire Grandmaster'}
+                  </p>
+                </motion.div>
+              )}
+
                     initializeGame();
                   }}
-                  className="btn btn-primary flex-1 flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
                 >
                   <RefreshIcon className="w-4 h-4 mr-2" />
                   Play Again
@@ -992,7 +1106,8 @@ const MainFeature = ({ difficulty, onRestart }) => {
                     setShowGameOver(false);
                     onRestart();
                   }}
-                  className="btn btn-outline flex-1 flex items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
                 >
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Main Menu
