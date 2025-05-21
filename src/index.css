@@ -48,7 +48,56 @@
 
   .playing-card-face-down {
     /* Main background with texture */
-    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    background: linear-gradient(135deg, #2c3e50 0%, #1e293b 100%);
+    position: relative;
+    overflow: hidden;
+    @apply border border-white/20 dark:border-black/20 shadow-md;
+  }
+
+  .playing-card-face-down::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    /* Diamond pattern overlay */
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.08) 25%, transparent 50%),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 2px, transparent 0, transparent 8px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.15) 0, rgba(255,255,255,0.15) 2px, transparent 0, transparent 8px);
+    background-size: 80% 80%, 10px 10px, 10px 10px;
+    background-position: center, center, center;
+    z-index: 1;
+  }
+
+  .playing-card-face-down::after {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #1a2537 0%, #273b52 100%);
+    opacity: 0.7;
+    z-index: 2;
+  }
+
+  /* Card back design - decorative border */
+  .playing-card-face-down > div::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border: 2px double rgba(255,255,255,0.3);
+    border-radius: 3px;
+    z-index: 3;
+  }
+
+  .playing-card-face-down {
     position: relative;
     overflow: hidden;
     @apply border border-white/20 dark:border-black/20 shadow-md;

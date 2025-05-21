@@ -198,7 +198,7 @@ const Pile = ({ pile, pileIndex, cards, onCardClick, onCardDrop, type }) => {
 };
 
 // Deck Component
-const Deck = ({ stock, waste, onDeckClick, drawCount }) => {
+const Deck = ({ stock, waste, onDeckClick, onCardDrop, drawCount }) => {
   return (
     <div className="flex gap-4">
       <div 
@@ -215,7 +215,12 @@ const Deck = ({ stock, waste, onDeckClick, drawCount }) => {
       </div>
       
       <div className="pile relative">
-        {waste.map((card, index) => {
+        {waste.length === 0 ? (
+          <div className="text-surface-400 dark:text-surface-500 font-medium">
+            Empty
+          </div>
+        ) : (
+          waste.map((card, index) => {
           // Only show the last card (or last 3 depending on draw count)
           const shouldShow = drawCount === 1 
             ? index === waste.length - 1 
@@ -224,29 +229,89 @@ const Deck = ({ stock, waste, onDeckClick, drawCount }) => {
           if (!shouldShow) return null;
           
           const offset = drawCount === 1 ? 0 : (index - (waste.length - 3)) * 30;
+          const isTopCard = index === waste.length - 1;
           
           return (
-            <div 
+            <WasteCard 
               key={`${card.suit}-${card.value}`} 
-              className="playing-card bg-white dark:bg-surface-800 absolute"
+              card={card}
+              isTopCard={isTopCard}
               style={{ left: offset }}
-            >
-              <div className="h-full w-full p-2 flex flex-col justify-between border border-surface-200 dark:border-surface-700 rounded-lg">
-                <div className={card.color === 'red' ? 'text-red-500' : 'text-surface-900 dark:text-white'}>
-                  <span className="text-lg font-bold">
-                    {card.value === 1 ? 'A' : card.value === 11 ? 'J' : card.value === 12 ? 'Q' : card.value === 13 ? 'K' : card.value}
-                  </span>
-                  <span className="text-lg ml-1">
-                    {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                  </span>
-                </div>
-                <div className={`text-center text-3xl ${card.color === 'red' ? 'text-red-500' : 'text-surface-900 dark:text-white'}`}>
-                  {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
-                </div>
-              </div>
-            </div>
+              onCardDrop={onCardDrop}
+            />
           );
-        })}
+        }))}
+      </div>
+    </div>
+  );
+};
+
+// Waste Card Component with drag functionality
+const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
+  const [animationClass, setAnimationClass] = useState('');
+  
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: 'CARD',
+    item: { card, fromPile: 'waste' },
+    canDrag: () => isTopCard, // Only the top card can be dragged
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+    begin: () => {
+      if (isTopCard) {
+        soundManager.play('cardDrag');
+      }
+    },
+  }), [card, isTopCard]);
+  
+  // Effect to remove animation class after animation completes
+  useEffect(() => {
+    if (animationClass) {
+      const timer = setTimeout(() => {
+        setAnimationClass('');
+      }, 500); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [animationClass]);
+
+  const suitColors = {
+    hearts: 'text-red-500',
+    diamonds: 'text-red-500',
+    clubs: 'text-surface-900 dark:text-white',
+    spades: 'text-surface-900 dark:text-white',
+  };
+
+  const valueMap = {
+    1: 'A',
+    11: 'J',
+    12: 'Q',
+    13: 'K',
+  };
+
+  const displayValue = valueMap[card.value] || card.value;
+          
+  return (
+    <div 
+      ref={drag}
+      className={`playing-card bg-white dark:bg-surface-800 absolute 
+                ${isDragging ? 'opacity-50' : 'opacity-100'} 
+                ${isTopCard ? 'hover:shadow-lg cursor-grab' : 'cursor-default'}
+                ${animationClass}`}
+      style={style}
+      onMouseDown={() => soundManager.play('cardSelect')}
+    >
+      <div className="h-full w-full p-2 flex flex-col justify-between border border-surface-200 dark:border-surface-700 rounded-lg">
+        <div className={`flex items-center ${suitColors[card.suit]}`}>
+          <span className="text-lg font-bold">{displayValue}</span>
+          <span className="text-lg ml-1">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</span>
+        </div>
+        <div className={`text-center flex-grow flex items-center justify-center text-3xl ${suitColors[card.suit]}`}>
+          {card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}
+        </div>
+        <div className={`flex items-center justify-end ${suitColors[card.suit]}`}>
+          <span className="text-lg ml-1">{card.suit === 'hearts' ? '♥' : card.suit === 'diamonds' ? '♦' : card.suit === 'clubs' ? '♣' : '♠'}</span>
+          <span className="text-lg font-bold">{displayValue}</span>
+        </div>
       </div>
     </div>
   );
@@ -505,10 +570,17 @@ const MainFeature = ({ difficulty, onRestart }) => {
       updateScore(10); // Points for moving to foundation
     } else if (sourcePileIndex === 'waste') {
       // From waste
-      const newWaste = [...waste];
+      if (waste.length === 0) {
+        toast.error("No cards in waste pile!");
+        return;
+      }
+
+      // Get the top card from waste
+      const newWaste = [...waste].slice(0, -1); // Remove last card
       const newFoundation = [...foundation];
       
-      const card = newWaste.pop();
+      // Add to foundation
+      const card = waste[waste.length - 1];
       newFoundation[foundationIndex].push(card);
       
       setWaste(newWaste);
@@ -546,7 +618,11 @@ const MainFeature = ({ difficulty, onRestart }) => {
         if (typeof fromPile === 'number') {
           // Move from tableau to foundation
           moveCardToFoundation(fromPile, index, foundationIndex);
+          validDrop = true;
         } else if (fromPile === 'waste') {
+          if (waste.length === 0) {
+            return;
+          }
           // Move from waste to foundation
           moveCardToFoundation('waste', null, foundationIndex);
         }
@@ -608,26 +684,32 @@ const MainFeature = ({ difficulty, onRestart }) => {
       } else if (fromPile === 'waste') {
         // From waste - just the top card
         cardsToMove = [waste[waste.length - 1]];
-        setWaste(waste.slice(0, waste.length - 1));
+        setWaste(waste.slice(0, -1)); // Remove the top card
+        validDrop = true;
       }
       
-      newTableau[targetPileIndex] = [...newTableau[targetPileIndex], ...cardsToMove];
+      // Add the cards to the target pile
+      if (cardsToMove.length > 0) {
+        newTableau[targetPileIndex] = [...newTableau[targetPileIndex], ...cardsToMove];
+        
+        setTableau(newTableau);
+        soundManager.play('cardDrop');
+        updateScore(5); // Points for a valid move
+        incrementMoves();
+        validDrop = true;
 
-      // Find the card to animate after the DOM updates
-      setTimeout(() => {
-        const tableauPiles = document.querySelectorAll('.pile');
-        if (tableauPiles && tableauPiles[targetPileIndex]) {
-          const lastCard = tableauPiles[targetPileIndex].querySelector('.playing-card:last-child');
+        // Find the card to animate after the DOM updates
+        setTimeout(() => {
+          const tableauPiles = document.querySelectorAll('.pile');
+          if (tableauPiles && tableauPiles[targetPileIndex]) {
+            const lastCard = tableauPiles[targetPileIndex].querySelector('.playing-card:last-child');
           if (lastCard) {
             lastCard.classList.add('successful-move');
           }
         }
       }, 50);
       
-      setTableau(newTableau);
-      soundManager.play('cardDrop');
-      updateScore(5); // Points for a valid move
-      incrementMoves();
+      }
     } else {
       if (settings.movesPenalty) {
         updateScore(-5); // Penalty for invalid move
@@ -1016,6 +1098,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
               stock={stock} 
               waste={waste} 
               onDeckClick={handleDeckClick} 
+              onCardDrop={handleCardDrop}
               drawCount={settings.drawCount}
             />
           </div>
