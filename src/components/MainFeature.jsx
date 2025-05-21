@@ -27,6 +27,7 @@ const SettingsIcon = getIcon('settings');
 const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
   const [isFlipping, setIsFlipping] = useState(false);
   const [wasFlipped, setWasFlipped] = useState(false);
+  const [animationClass, setAnimationClass] = useState('');
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'CARD',
@@ -37,7 +38,6 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
     }),
     begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
     }),
-    begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
   }), [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
@@ -78,13 +78,24 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
     }
   }, [card.faceUp, wasFlipped]);
 
+  // Effect to remove animation class after animation completes
+  useEffect(() => {
+    if (animationClass) {
+      const timer = setTimeout(() => {
+        setAnimationClass('');
+      }, 500); // Match animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [animationClass]);
+
   return (
     <div
       ref={drag}
       className={`absolute playing-card card-flip ${isFlipping ? 'flipped' : ''} 
                  ${card.faceUp ? 'bg-white dark:bg-surface-800' : 'playing-card-face-down'} ${isDragging ? 'opacity-50' : 'opacity-100'} 
                  ${isLast && card.faceUp ? 'hover:shadow-lg' : ''}
-                 ${isDraggable && card.faceUp ? 'cursor-grab' : 'cursor-default'}`}
+                 ${isDraggable && card.faceUp ? 'cursor-grab' : 'cursor-default'}
+                 ${animationClass}`}
       style={cardStyle}
       onClick={() => onCardClick(pileIndex, index)}
       onMouseDown={() => {
@@ -514,6 +525,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
     const { card, fromPile, index } = item;
     
     let validDrop = false;
+    let cardToAnimate;
     // Check if moving to foundation
     if (targetPileIndex >= 100) {
       const foundationIndex = targetPileIndex - 100;
@@ -539,6 +551,17 @@ const MainFeature = ({ difficulty, onRestart }) => {
           moveCardToFoundation('waste', null, foundationIndex);
         }
         validDrop = true;
+        
+        // Find the card element to animate for foundation moves
+        setTimeout(() => {
+          const foundationPiles = document.querySelectorAll('.pile');
+          if (foundationPiles && foundationPiles[foundationIndex + 4]) { // +4 to account for stock and tableau piles
+            const lastCard = foundationPiles[foundationIndex + 4].querySelector('.playing-card:last-child');
+            if (lastCard) {
+              lastCard.classList.add('successful-move');
+            }
+          }
+        }, 50);
         soundManager.play('cardDrop');
       } else {
         if (settings.movesPenalty) {
@@ -589,10 +612,20 @@ const MainFeature = ({ difficulty, onRestart }) => {
       }
       
       newTableau[targetPileIndex] = [...newTableau[targetPileIndex], ...cardsToMove];
+
+      // Find the card to animate after the DOM updates
+      setTimeout(() => {
+        const tableauPiles = document.querySelectorAll('.pile');
+        if (tableauPiles && tableauPiles[targetPileIndex]) {
+          const lastCard = tableauPiles[targetPileIndex].querySelector('.playing-card:last-child');
+          if (lastCard) {
+            lastCard.classList.add('successful-move');
+          }
+        }
+      }, 50);
       
       setTableau(newTableau);
       soundManager.play('cardDrop');
-      validDrop = true;
       updateScore(5); // Points for a valid move
       incrementMoves();
     } else {

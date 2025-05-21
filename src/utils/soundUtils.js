@@ -49,6 +49,7 @@ class SoundManager {
       
       // Create a promise that resolves when the sound is loaded
       const loadPromise = new Promise((resolve, reject) => {
+  
         audio.oncanplaythrough = resolve;
         audio.onerror = reject;
       }).catch(err => console.warn(`Failed to load sound: ${name}`, err));
@@ -71,7 +72,7 @@ class SoundManager {
   setVolume(volume) {
     this.volume = volume;
     localStorage.setItem('soundVolume', volume.toString());
-    
+
     // Update volume for all sounds
     Object.values(this.sounds).forEach(sound => {
       sound.volume = volume;
