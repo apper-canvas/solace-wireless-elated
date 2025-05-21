@@ -580,8 +580,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
         soundManager.play('invalidDrop');
         validDrop = false;
       }
-      }
-    }
+    }}
   };
 
   // Update score
