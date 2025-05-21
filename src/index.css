@@ -131,3 +131,43 @@
     opacity: 0;
   }
 }
+
+/* Sound settings styles */
+.volume-slider {
+  @apply w-full h-2 bg-surface-200 dark:bg-surface-700 rounded-full appearance-none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  @apply w-4 h-4 bg-primary rounded-full;
+  transition: transform 0.1s ease;
+}
+
+.volume-slider::-moz-range-thumb {
+  @apply w-4 h-4 bg-primary rounded-full border-none;
+  transition: transform 0.1s ease;
+}
+
+.volume-slider::-webkit-slider-thumb:hover,
+.volume-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-slider:focus {
+  @apply outline-none ring-2 ring-primary/30;
+}
+
+.settings-toggle {
+  @apply flex items-center space-x-2 text-sm font-medium cursor-pointer;
+}
+
+.settings-toggle-switch {
+  @apply relative inline-block w-10 h-5 rounded-full bg-surface-300 dark:bg-surface-700 transition-colors duration-200;
+}
+
+.settings-toggle-switch div {
+  @apply absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transform transition-transform duration-200;
+}

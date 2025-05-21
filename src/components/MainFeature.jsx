@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { getIcon } from '../utils/iconUtils';
 
 import Confetti from 'react-confetti';
+import soundManager from '../utils/soundUtils';
 // Icons
 const RefreshIcon = getIcon('refresh-cw');
 const HelpCircleIcon = getIcon('help-circle');
@@ -17,6 +18,10 @@ const XIcon = getIcon('x');
 const StarIcon = getIcon('star');
 const TrophyIcon = getIcon('trophy');
 const PartyPopperIcon = getIcon('party-popper');
+const VolumeIcon = getIcon('volume-2');
+const Volume1Icon = getIcon('volume-1');
+const VolumeXIcon = getIcon('volume-x');
+const SettingsIcon = getIcon('settings');
 
 // Card Component
 const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
@@ -27,6 +32,7 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
+    begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
   }), [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
@@ -67,6 +73,9 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
                  ${isDraggable && card.faceUp ? 'cursor-grab' : 'cursor-default'}`}
       style={cardStyle}
       onClick={() => onCardClick(pileIndex, index)}
+      onMouseDown={() => {
+        if (card.faceUp) soundManager.play('cardSelect');
+      }}
     >
       {card.faceUp ? (
         <div className={`h-full w-full p-2 flex flex-col justify-between rounded-lg border border-surface-200 dark:border-surface-700 ${isLast ? 'hover:ring-2 hover:ring-primary/50' : ''}`}>
@@ -134,7 +143,8 @@ const Pile = ({ pile, pileIndex, cards, onCardClick, onCardDrop, type }) => {
   let pileClassName = "pile relative h-[180px]";
   
   if (isOver) {
-    pileClassName += canDrop ? " valid-drop-target" : " invalid-drop-target";
+    const dropClass = canDrop ? " valid-drop-target" : " invalid-drop-target";
+    pileClassName += dropClass;
   }
 
   const emptyPileLabel = type === 'foundation' ? 'A-K' : 'K';
@@ -266,6 +276,8 @@ const MainFeature = ({ difficulty, onRestart }) => {
   const [flyingCards, setFlyingCards] = useState([]);
   const [windowSize, setWindowSize] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [showGameOver, setShowGameOver] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [soundVolume, setSoundVolume] = useState(() => parseFloat(localStorage.getItem('soundVolume') || '0.5'));
 
   // Initialize game
   useEffect(() => {
@@ -284,6 +296,12 @@ const MainFeature = ({ difficulty, onRestart }) => {
     }, 1000);
 
     return () => clearInterval(timerInterval);
+  }, [difficulty]);
+
+  // Initialize sound effects based on difficulty
+  useEffect(() => {
+    soundManager.initialize(difficulty);
+    setSoundVolume(parseFloat(localStorage.getItem('soundVolume') || '0.5'));
   }, [difficulty]);
 
   // Check for win condition
@@ -473,6 +491,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
   const handleCardDrop = (item, targetPileIndex) => {
     const { card, fromPile, index } = item;
     
+    let validDrop = false;
     // Check if moving to foundation
     if (targetPileIndex >= 100) {
       const foundationIndex = targetPileIndex - 100;
@@ -497,10 +516,14 @@ const MainFeature = ({ difficulty, onRestart }) => {
           // Move from waste to foundation
           moveCardToFoundation('waste', null, foundationIndex);
         }
+        validDrop = true;
+        soundManager.play('cardDrop');
       } else {
         if (settings.movesPenalty) {
           updateScore(-5); // Penalty for invalid move
           toast.error("Invalid move!");
+          soundManager.play('invalidDrop');
+          validDrop = false;
         }
       }
       
@@ -546,12 +569,17 @@ const MainFeature = ({ difficulty, onRestart }) => {
       newTableau[targetPileIndex] = [...newTableau[targetPileIndex], ...cardsToMove];
       
       setTableau(newTableau);
+      soundManager.play('cardDrop');
+      validDrop = true;
       updateScore(5); // Points for a valid move
       incrementMoves();
     } else {
       if (settings.movesPenalty) {
         updateScore(-5); // Penalty for invalid move
         toast.error("Invalid move!");
+        soundManager.play('invalidDrop');
+        validDrop = false;
+      }
       }
     }
   };
@@ -684,6 +712,14 @@ const MainFeature = ({ difficulty, onRestart }) => {
     const valueName = valueNames[card.value] || card.value.toString();
     return `${valueName} of ${card.suit.charAt(0).toUpperCase() + card.suit.slice(1)}`;
   };
+
+  // Handle volume change
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setSoundVolume(newVolume);
+    soundManager.setVolume(newVolume);
+    soundManager.play('cardSelect'); // Play a sound to demonstrate volume
+  };
   
   // Create flying card animations
   const createFlyingCards = () => {
@@ -725,6 +761,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
     const audio = new Audio();
     audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3';
     audio.volume = 0.5;
+    if (soundManager.isMuted()) return; // Respect muted setting
     audio.play().catch(e => console.log('Audio play failed:', e));
   };
 
@@ -804,6 +841,14 @@ const MainFeature = ({ difficulty, onRestart }) => {
             <ArrowRightIcon className="w-5 h-5 text-accent mr-2" />
             <span>Moves: <strong>{gameState.moves}</strong></span>
           </div>
+
+          <div className="card-neu px-4 py-2 flex items-center cursor-pointer" onClick={() => setShowSettings(!showSettings)}>
+            <button className="flex items-center">
+              {soundManager.isMuted() ? <VolumeXIcon className="w-5 h-5 text-surface-500 mr-2" /> :
+                soundVolume <= 0.5 ? <Volume1Icon className="w-5 h-5 text-secondary mr-2" /> :
+                <VolumeIcon className="w-5 h-5 text-secondary mr-2" />}
+            </button>
+          </div>
         </div>
         
         <div className="flex flex-wrap gap-2">
@@ -843,6 +888,65 @@ const MainFeature = ({ difficulty, onRestart }) => {
           </button>
         </div>
       </div>
+
+      {/* Sound Settings Panel */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mb-4 card p-4 bg-white dark:bg-surface-800 rounded-xl"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <SettingsIcon className="w-5 h-5 mr-2 text-primary" />
+                <h3 className="font-medium">Sound Settings</h3>
+              </div>
+              <button onClick={() => setShowSettings(false)} className="text-surface-500 hover:text-surface-700">
+                <XIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="settings-toggle" onClick={() => soundManager.toggleMute()}>
+                  <div className={`settings-toggle-switch ${!soundManager.isMuted() ? 'bg-primary' : ''}`}>
+                    <div className={!soundManager.isMuted() ? 'translate-x-5' : ''}></div>
+                  </div>
+                  <span>{soundManager.isMuted() ? 'Sound Off' : 'Sound On'}</span>
+                </label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center justify-between text-sm font-medium">
+                  <span>Volume</span>
+                  <span>{Math.round(soundVolume * 100)}%</span>
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={soundVolume}
+                  onChange={handleVolumeChange}
+                  className="volume-slider"
+                />
+                <div className="flex justify-between text-xs text-surface-500">
+                  <span>Quiet</span>
+                  <span>Loud</span>
+                </div>
+              </div>
+
+              <div className="text-sm text-surface-500">
+                <p>Sound style is based on difficulty level.</p>
+                <p className="mt-1"><strong>Easy:</strong> Muted, subtle sounds</p>
+                <p><strong>Normal & Hard:</strong> More engaging sounds</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Difficulty Badge */}
       <div className="absolute top-0 right-0 bg-gradient-to-r from-primary to-secondary text-white px-3 py-1 rounded-bl-lg rounded-tr-lg text-sm font-medium">
