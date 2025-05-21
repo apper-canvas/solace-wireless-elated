@@ -37,7 +37,7 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
       isDragging: !!monitor.isDragging(),
     }),
     begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
-    }),
+    }
   }), [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
@@ -703,11 +703,11 @@ const MainFeature = ({ difficulty, onRestart }) => {
           const tableauPiles = document.querySelectorAll('.pile');
           if (tableauPiles && tableauPiles[targetPileIndex]) {
             const lastCard = tableauPiles[targetPileIndex].querySelector('.playing-card:last-child');
-          if (lastCard) {
-            lastCard.classList.add('successful-move');
+            if (lastCard) {
+              lastCard.classList.add('successful-move');
+            }
           }
-        }
-      }, 50);
+        }, 50);
       
       }
     } else {
