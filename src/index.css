@@ -79,12 +79,37 @@
 
 /* Card animations */
 .card-flip {
+  position: relative;
+  transition: transform 0.5s ease;
   transform-style: preserve-3d;
-  transition: transform 0.5s;
+  perspective: 1000px;
 }
 
 .card-flip.flipped {
+  transform: rotateY(180deg) translateZ(1px);
+}
+
+/* For the card front and back faces */
+.card-flip > div {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: transform 0.5s ease;
+}
+
+/* Back of card (face down) */
+.playing-card-face-down {
   transform: rotateY(180deg);
+  transition: transform 0.5s ease, background-color 0.3s ease;
+}
+
+/* Front of card (face up) */
+.card-flip .bg-white, 
+.card-flip .dark\:bg-surface-800 {
+  transform: rotateY(0deg);
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .card-drag {

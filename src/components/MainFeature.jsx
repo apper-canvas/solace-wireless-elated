@@ -25,12 +25,17 @@ const SettingsIcon = getIcon('settings');
 
 // Card Component
 const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [wasFlipped, setWasFlipped] = useState(false);
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'CARD',
     item: { card, fromPile: pileIndex, index },
     canDrag: () => isDraggable && card.faceUp,
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
+    }),
+    begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
     }),
     begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
   }), [card, pileIndex, index, isDraggable]);
@@ -64,11 +69,20 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
 
   const displayValue = valueMap[card.value] || card.value;
 
+  // Effect to handle animation when card flips
+  useEffect(() => {
+    if (card.faceUp && !wasFlipped) {
+      setIsFlipping(true);
+      setWasFlipped(true);
+      setTimeout(() => setIsFlipping(false), 500); // Match the CSS transition duration
+    }
+  }, [card.faceUp, wasFlipped]);
+
   return (
     <div
       ref={drag}
-      className={`absolute playing-card ${card.faceUp ? 'bg-white dark:bg-surface-800' : 'playing-card-face-down'} 
-                 ${isDragging ? 'opacity-50' : 'opacity-100'} 
+      className={`absolute playing-card card-flip ${isFlipping ? 'flipped' : ''} 
+                 ${card.faceUp ? 'bg-white dark:bg-surface-800' : 'playing-card-face-down'} ${isDragging ? 'opacity-50' : 'opacity-100'} 
                  ${isLast && card.faceUp ? 'hover:shadow-lg' : ''}
                  ${isDraggable && card.faceUp ? 'cursor-grab' : 'cursor-default'}`}
       style={cardStyle}
@@ -404,8 +418,16 @@ const MainFeature = ({ difficulty, onRestart }) => {
     
     // If clicking on a face-down card and it's the top card, flip it
     if (!pile[cardIndex].faceUp && cardIndex === pile.length - 1) {
-      pile[cardIndex].faceUp = true;
       const newTableau = [...tableau];
+      
+      // Play flip sound
+      soundManager.play('cardFlip');
+      
+      // Set the card to face up to trigger the animation
+      pile[cardIndex] = {
+        ...pile[cardIndex],
+        faceUp: true
+      };
       newTableau[pileIndex] = pile;
       setTableau(newTableau);
       updateScore(5); // Points for revealing a new card
@@ -580,9 +602,8 @@ const MainFeature = ({ difficulty, onRestart }) => {
         soundManager.play('invalidDrop');
         validDrop = false;
       }
-    }}
+    }
   };
-  }; // Fixed handleCardDrop function closing brace
   // Update score
   const updateScore = (points) => {
     setGameState(prev => ({

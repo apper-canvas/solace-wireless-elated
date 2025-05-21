@@ -14,6 +14,7 @@ const SOUND_URLS = {
     cardDrop: 'https://assets.mixkit.co/sfx/preview/mixkit-positive-interface-beep-221.mp3',
     invalidDrop: 'https://assets.mixkit.co/sfx/preview/mixkit-video-game-retro-click-237.mp3'
   },
+      cardFlip: { easy: 'https://assets.mixkit.co/sfx/preview/mixkit-plastic-bubble-click-1124.mp3', normal: 'https://assets.mixkit.co/sfx/preview/mixkit-game-flicks-1647.mp3' },
   Hard: {
     cardSelect: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3',
     cardDrag: 'https://assets.mixkit.co/sfx/preview/mixkit-game-ball-tap-2073.mp3',
