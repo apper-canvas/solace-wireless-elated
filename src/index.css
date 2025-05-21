@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import 'react-toastify/dist/ReactToastify.css';
+
+@layer base {
+  body {
+    @apply bg-surface-50 text-surface-800 dark:bg-surface-900 dark:text-surface-100;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-primary;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark focus:ring-secondary;
+  }
+
+  .btn-outline {
+    @apply border border-surface-300 hover:bg-surface-100 dark:border-surface-700 dark:hover:bg-surface-800;
+  }
+
+  .card {
+    @apply bg-white dark:bg-surface-800 rounded-xl shadow-card p-4;
+  }
+
+  .card-neu {
+    @apply bg-surface-50 dark:bg-surface-800 rounded-xl shadow-neu-light dark:shadow-neu-dark p-4;
+  }
+
+  .playing-card {
+    @apply relative select-none cursor-pointer rounded-lg transition-transform;
+    height: 150px;
+    width: 100px;
+  }
+
+  .playing-card-face-down {
+    @apply bg-gradient-to-br from-primary-dark to-primary;
+  }
+
+  .difficulty-option {
+    @apply transition-all duration-200 hover:scale-105 cursor-pointer;
+  }
+
+  .playing-area {
+    @apply grid gap-2 md:gap-4;
+  }
+
+  .pile {
+    @apply rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-700 min-h-[150px] flex justify-center items-center;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.card-overlap {
+  margin-top: -100px;
+}
+
+/* Card animations */
+.card-flip {
+  transform-style: preserve-3d;
+  transition: transform 0.5s;
+}
+
+.card-flip.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-drag {
+  @apply shadow-xl z-50;
+}
+
+.valid-drop-target {
+  @apply ring-2 ring-primary animate-pulse;
+}
+
+.invalid-drop-target {
+  @apply ring-2 ring-red-500;
+}
