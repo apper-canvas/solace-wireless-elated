@@ -1136,21 +1136,24 @@ const MainFeature = ({ difficulty, onRestart }) => {
               
               <h2 className={`${gameState.isGameWon ? 'text-3xl' : 'text-2xl'} font-bold mb-2 flex items-center justify-center`}>
                 {gameState.isGameWon 
-                {gameState.isGameWon && <StarIcon className="w-6 h-6 text-yellow-400 ml-2" />}
                   ? 'You successfully completed the game!' 
                   : 'Time\'s up! Better luck next time.'}
-              </p>
-
-                  ? (
-                    <motion.span 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      You mastered the challenge in <strong>{formatTime(gameState.time)}</strong> with <strong>{gameState.moves}</strong> moves!
-                    </motion.span>
-                  )
-                  : 'Time\'s up! Better luck next time.'}
+                {gameState.isGameWon && <StarIcon className="w-6 h-6 text-yellow-400 ml-2" />}
+              </h2>
+              
+              {gameState.isGameWon && (
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="mb-4"
+                >
+                  You mastered the challenge in <strong>{formatTime(gameState.time)}</strong> with <strong>{gameState.moves}</strong> moves!
+                </motion.p>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-surface-100 dark:bg-surface-700 p-3 rounded-lg">
                   <div className="text-surface-500 text-sm">Score</div>
                   <div className="text-xl font-bold">{Math.floor(gameState.score)}</div>
                 </div>
@@ -1164,20 +1167,14 @@ const MainFeature = ({ difficulty, onRestart }) => {
                 </div>
                 <div className="bg-surface-100 dark:bg-surface-700 p-3 rounded-lg">
                   <div className="text-surface-500 text-sm">Difficulty</div>
-                  <div className="text-xl font-bold">{difficulty}</div>
-                </div>
-              </div>
-                  <div className="text-surface-500 text-sm flex items-center justify-center space-x-1">
-                    <span>Difficulty</span>
-                  </div>
                   <div className={`text-xl font-bold ${
                     difficulty === 'Easy' ? 'text-green-500' : 
                     difficulty === 'Normal' ? 'text-blue-500' : 
                     'text-purple-500'
                   }`}>{difficulty}</div>
-                <button
-                  onClick={() => {
-                    setShowGameOver(false);
+                </div>
+              </div>
+              
               {gameState.isGameWon && (
                 <motion.div 
                   className="mb-6 p-3 bg-primary/10 rounded-lg text-primary-dark"
@@ -1197,21 +1194,23 @@ const MainFeature = ({ difficulty, onRestart }) => {
                 </motion.div>
               )}
 
+              <div className="flex space-x-4 justify-center">
+                <button
+                  className="btn btn-primary flex items-center"
+                  onClick={() => {
+                    setShowGameOver(false);
                     initializeGame();
                   }}
-                  onClick={(e) => {
-                    e.stopPropagation();
                 >
                   <RefreshIcon className="w-4 h-4 mr-2" />
                   Play Again
                 </button>
                 <button
+                  className="btn btn-outline flex items-center"
                   onClick={() => {
                     setShowGameOver(false);
                     onRestart();
                   }}
-                  onClick={(e) => {
-                    e.stopPropagation();
                 >
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Main Menu
