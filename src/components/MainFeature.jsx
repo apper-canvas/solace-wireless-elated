@@ -582,7 +582,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
       }
     }}
   };
-
+  }; // Fixed handleCardDrop function closing brace
   // Update score
   const updateScore = (points) => {
     setGameState(prev => ({
@@ -764,7 +764,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
     audio.play().catch(e => console.log('Audio play failed:', e));
   };
 
-  // Handle game over
+  // Handle game over 
   const handleGameOver = (isWin) => {
     setGameState(prev => ({
       ...prev,
