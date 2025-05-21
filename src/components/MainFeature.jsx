@@ -37,8 +37,8 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
       isDragging: !!monitor.isDragging(),
     }),
     begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
-    }
-  }), [card, pileIndex, index, isDraggable]);
+    }), 
+  [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
     transform: `translateY(${index * 25}px)`,
