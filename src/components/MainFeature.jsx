@@ -21,7 +21,6 @@ const XIcon = getIcon('x');
 const StarIcon = getIcon('star');
 const TrophyIcon = getIcon('trophy');
 const PartyPopperIcon = getIcon('party-popper');
-const VolumeIcon = getIcon('volume-2');
 const Volume1Icon = getIcon('volume-1');
 const VolumeXIcon = getIcon('volume-x');
 const SettingsIcon = getIcon('settings');
