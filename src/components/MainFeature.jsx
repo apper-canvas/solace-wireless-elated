@@ -39,14 +39,17 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
     begin: () => {
       if (isDraggable && card.faceUp) {
         soundManager.play('cardDrag');
-        setAnimationClass('card-drag');
+        setAnimationClass('card-drag card-pick-animation');
         return true;
       }
     },
     end: () => {
       setAnimationClass('');
     }
-  }), [card, pileIndex, index, isDraggable]);
+  }, [card, pileIndex, index, isDraggable]);
+
+  // Add a class for animation
+  const dragClass = isDragging ? 'card-pick-animation' : '';
 
   const cardStyle = {
     transform: `translateY(${index * 25}px)`,
@@ -101,7 +104,7 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
       ref={drag}
       className={`absolute playing-card card-flip ${isFlipping ? 'flipped' : ''} 
                  ${card.faceUp ? 'bg-white dark:bg-surface-800' : 'playing-card-face-down'} ${isDragging ? 'opacity-50' : 'opacity-100'} 
-                 ${isLast && card.faceUp ? 'hover:shadow-lg' : ''}
+                 ${isLast && card.faceUp ? 'hover:shadow-lg hover:translate-y-[-2px] transition-all' : ''}
                  ${isDraggable && card.faceUp ? 'cursor-grab' : 'cursor-default'}
                  ${animationClass}`}
       style={cardStyle}
@@ -268,14 +271,14 @@ const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
     begin: () => {
       if (isTopCard) {
         soundManager.play('cardDrag');
-        setAnimationClass('card-drag');
+        setAnimationClass('card-drag card-pick-animation');
         return true;
       }
     },
     end: () => {
       setAnimationClass('');
     }
-  }), [card, isTopCard]);
+  }, [card, isTopCard]);
 
   
   // Effect to remove animation class after animation completes
@@ -648,7 +651,8 @@ const MainFeature = ({ difficulty, onRestart }) => {
           if (foundationPiles && foundationPiles[foundationIndex + 4]) { // +4 to account for stock and tableau piles
             const lastCard = foundationPiles[foundationIndex + 4].querySelector('.playing-card:last-child');
             if (lastCard) {
-              lastCard.classList.add('successful-move');
+              lastCard.classList.add('successful-move', 'card-drop-animation');
+              setTimeout(() => lastCard.classList.remove('card-drop-animation'), 600);
             }
           }
         }, 50);
@@ -719,7 +723,8 @@ const MainFeature = ({ difficulty, onRestart }) => {
           if (tableauPiles && tableauPiles[targetPileIndex]) {
             const lastCard = tableauPiles[targetPileIndex].querySelector('.playing-card:last-child');
             if (lastCard) {
-              lastCard.classList.add('successful-move');
+              lastCard.classList.add('successful-move', 'card-drop-animation');
+              setTimeout(() => lastCard.classList.remove('card-drop-animation'), 600);
             }
           }
         }, 50);
@@ -1106,7 +1111,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
       {/* Game Board */}
       <div className="grid grid-cols-1 gap-6">
         {/* Foundation and Stock Area */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 bg-gradient-to-br from-surface-100 to-surface-200 dark:from-surface-800 dark:to-surface-900 rounded-xl p-4">
           <div className="flex flex-col">
             <div className="text-sm font-medium mb-1 text-surface-600 dark:text-surface-300">Draw Pile</div>
             <Deck 
@@ -1137,7 +1142,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
         </div>
 
         {/* Tableau Area */}
-        <div className="flex flex-col">
+        <div className="flex flex-col bg-gradient-to-br from-surface-100 to-surface-200 dark:from-surface-800 dark:to-surface-900 rounded-xl p-4">
           <div className="text-sm font-medium mb-1 text-surface-600 dark:text-surface-300">Tableau</div>
           <div className="grid grid-cols-7 gap-2">
             {tableau.map((pile, index) => (
