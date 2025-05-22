@@ -34,6 +34,9 @@ class SoundManager {
     this.difficulty = 'Normal';
     this.loadedPromises = [];
     this.victorySound = null;
+    this.musicPlayer = null;
+    this.musicMuted = localStorage.getItem('musicMuted') === 'true';
+    this.musicVolume = parseFloat(localStorage.getItem('musicVolume') || '0.7');
   }
 
   initialize(difficulty) {
@@ -107,6 +110,41 @@ class SoundManager {
 
   isMuted() {
     return this.muted;
+  }
+
+  // Background music methods
+  initMusicPlayer(player) {
+    this.musicPlayer = player;
+    this.setMusicVolume(this.musicVolume);
+    
+    if (!this.musicMuted) {
+      this.playMusic();
+    }
+  }
+
+  playMusic() {
+    if (this.musicPlayer && this.musicPlayer.playVideo) {
+      this.musicPlayer.playVideo();
+      this.musicMuted = false;
+      localStorage.setItem('musicMuted', 'false');
+    }
+  }
+
+  pauseMusic() {
+    if (this.musicPlayer && this.musicPlayer.pauseVideo) {
+      this.musicPlayer.pauseVideo();
+      this.musicMuted = true;
+      localStorage.setItem('musicMuted', 'true');
+    }
+  }
+
+  setMusicVolume(volume) {
+    this.musicVolume = volume;
+    localStorage.setItem('musicVolume', volume.toString());
+    
+    if (this.musicPlayer && this.musicPlayer.setVolume) {
+      this.musicPlayer.setVolume(volume * 100);
+    }
   }
 }
 

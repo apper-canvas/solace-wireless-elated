@@ -367,3 +367,66 @@
 .settings-toggle-switch div {
   @apply absolute top-0.5 left-0.5 bg-white w-4 h-4 rounded-full transform transition-transform duration-200;
 }
+
+/* YouTube music player */
+.youtube-player-container {
+  position: absolute;
+  top: -9999px;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  visibility: hidden;
+}
+
+/* Music controls */
+.music-controls-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.music-toggle-btn {
+  @apply bg-white dark:bg-surface-800 rounded-full p-3 shadow-md
+  hover:bg-surface-100 dark:hover:bg-surface-700 
+  focus:outline-none focus:ring-2 focus:ring-primary
+  transition-all duration-200;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.music-controls-panel {
+  @apply bg-white dark:bg-surface-800 rounded-xl p-3 shadow-lg
+  flex items-center space-x-3 mb-3 transition-all duration-300 opacity-0;
+  transform: translateY(10px);
+  pointer-events: none;
+  width: 220px;
+}
+
+.music-controls-panel.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.music-play-btn {
+  @apply bg-primary text-white rounded-full p-2
+  hover:bg-primary-dark transition-colors duration-200
+  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.music-volume-slider {
+  @apply volume-slider flex-grow;
+  max-width: 140px;
+}
