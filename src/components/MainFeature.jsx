@@ -36,9 +36,17 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
-  }, 
-  [card, pileIndex, index, isDraggable]);
+    begin: () => {
+      if (isDraggable && card.faceUp) {
+        soundManager.play('cardDrag');
+        setAnimationClass('card-drag');
+        return true;
+      }
+    },
+    end: () => {
+      setAnimationClass('');
+    }
+  }), [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
     transform: `translateY(${index * 25}px)`,
@@ -260,9 +268,15 @@ const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
     begin: () => {
       if (isTopCard) {
         soundManager.play('cardDrag');
+        setAnimationClass('card-drag');
+        return true;
       }
+    },
+    end: () => {
+      setAnimationClass('');
     }
   }), [card, isTopCard]);
+
   
   // Effect to remove animation class after animation completes
   useEffect(() => {
@@ -699,6 +713,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
         validDrop = true;
 
         // Find the card to animate after the DOM updates
+        // Apply animation for successful sequence arrangement
         setTimeout(() => {
           const tableauPiles = document.querySelectorAll('.pile');
           if (tableauPiles && tableauPiles[targetPileIndex]) {
@@ -709,7 +724,6 @@ const MainFeature = ({ difficulty, onRestart }) => {
           }
         }, 50);
       
-      }
     } else {
       if (settings.movesPenalty) {
         updateScore(-5); // Penalty for invalid move
@@ -717,6 +731,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
         soundManager.play('invalidDrop');
         validDrop = false;
       }
+    }
     }
   };
   // Update score
