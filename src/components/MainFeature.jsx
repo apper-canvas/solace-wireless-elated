@@ -37,7 +37,7 @@ const Card = ({ card, index, pileIndex, onCardClick, isDraggable, isLast }) => {
       isDragging: !!monitor.isDragging(),
     }),
     begin: () => isDraggable && card.faceUp && soundManager.play('cardDrag'),
-    }, 
+  }, 
   [card, pileIndex, index, isDraggable]);
 
   const cardStyle = {
@@ -261,7 +261,7 @@ const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
       if (isTopCard) {
         soundManager.play('cardDrag');
       }
-    },
+    }
   }), [card, isTopCard]);
   
   // Effect to remove animation class after animation completes
