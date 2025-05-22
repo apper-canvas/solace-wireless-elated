@@ -295,8 +295,15 @@
   width: 80px;
   height: 112px;
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  overflow: hidden;
+  transform-origin: center;
+  animation: fly-away 2s ease-out forwards;
+}
+
+.flying-card::before {
   animation: fly-away 2s ease-out forwards;
   transform-origin: center;
 }
@@ -305,10 +312,19 @@
   0% {
     transform: translate(0, 0) rotate(0deg);
     opacity: 1;
+    filter: brightness(1.2) contrast(1.1);
+  }
+  20% {
+    opacity: 1;
+    filter: brightness(1.5) contrast(1.2);
+  }
+  80% {
+    opacity: 0.8;
+    filter: brightness(1.3) contrast(1);
   }
   100% {
     transform: translate(var(--tx), var(--ty)) rotate(var(--rotate));
-    opacity: 0;
+    opacity: 0; 
   }
 }
 

@@ -913,11 +913,14 @@ const MainFeature = ({ difficulty, onRestart }) => {
   
   // Play victory sound
   const playVictorySound = () => {
-    const audio = new Audio();
-    audio.src = 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3';
-    audio.volume = 0.5;
-    if (soundManager.isMuted()) return; // Respect muted setting
-    audio.play().catch(e => console.log('Audio play failed:', e));
+    // Use the sound manager to play victory sound with proper volume settings
+    soundManager.playVictory();
+    
+    // Add a small delay and play another celebratory sound for emphasis
+    setTimeout(() => {
+      if (!soundManager.isMuted())
+        soundManager.play('cardDrop');
+    }, 300);
   };
 
   // Handle game over 
@@ -934,6 +937,7 @@ const MainFeature = ({ difficulty, onRestart }) => {
       // Start victory celebrations
       setShowConfetti(true);
       playVictorySound();
+      // Create flying cards for the cracker burst effect
       setFlyingCards(createFlyingCards());
       
       // Stop confetti after 7 seconds
@@ -1259,13 +1263,22 @@ const MainFeature = ({ difficulty, onRestart }) => {
               />
             )}
             
-            {/* Flying cards animation */}
+            {/* Flying cards animation - simulates crackers bursting */}
             {gameState.isGameWon && flyingCards.map(card => (
               <div 
                 key={card.id} 
-                className="flying-card" 
+                className="flying-card"
                 style={card.style}
-              ></div>
+              >
+                {/* Add card symbol to make it look like playing cards */}
+                <div className={`absolute inset-0 flex items-center justify-center text-xl 
+                              ${card.style.backgroundColor.includes('fef2f2') ? 'text-red-500' : 'text-surface-900'}`}>
+                  {Math.random() > 0.5 ? '♥' : 
+                   Math.random() > 0.5 ? '♦' : 
+                   Math.random() > 0.5 ? '♣' : 
+                   '♠'}
+                </div>
+              </div>
             ))}
             
             <motion.div

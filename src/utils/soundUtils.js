@@ -23,6 +23,9 @@ const SOUND_URLS = {
   }
 };
 
+// Victory sound - used across all difficulty levels
+const VICTORY_SOUND_URL = 'https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3';
+
 class SoundManager {
   constructor() {
     this.sounds = {};
@@ -30,6 +33,7 @@ class SoundManager {
     this.volume = parseFloat(localStorage.getItem('soundVolume') || '0.5');
     this.difficulty = 'Normal';
     this.loadedPromises = [];
+    this.victorySound = null;
   }
 
   initialize(difficulty) {
@@ -39,6 +43,12 @@ class SoundManager {
 
   loadSounds() {
     const soundsToLoad = SOUND_URLS[this.difficulty];
+    
+    // Load victory sound (common across all difficulties)
+    this.victorySound = new Audio();
+    this.victorySound.src = VICTORY_SOUND_URL;
+    this.victorySound.volume = this.volume;
+    this.sounds.victory = this.victorySound;
     
     for (const [name, url] of Object.entries(soundsToLoad)) {
       const audio = new Audio();
@@ -60,6 +70,16 @@ class SoundManager {
     return Promise.all(this.loadedPromises);
   }
 
+  playVictory() {
+    if (this.muted) return;
+    
+    if (this.victorySound) {
+      const sound = this.victorySound.cloneNode();
+      sound.volume = this.volume;
+      sound.play().catch(err => console.warn(`Error playing victory sound`, err));
+    }
+  }
+  
   play(soundName) {
     if (this.muted || !this.sounds[soundName]) return;
     
