@@ -295,8 +295,6 @@ const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
 
   const suitColors = {
     hearts: 'text-red-500',
-  });
-
     diamonds: 'text-red-500',
     clubs: 'text-surface-900 dark:text-white',
     spades: 'text-surface-900 dark:text-white',
@@ -371,12 +369,15 @@ const MainFeature = ({ difficulty, onRestart }) => {
   const [gameState, setGameState] = useState({
     score: 0,
     moves: 0,
+  const [gameState, setGameState] = useState({
+    score: 0,
+    moves: 0,
     time: 0,
     isGameOver: false,
     isGameWon: false,
     hintsUsed: 0,
     hintsRemaining: settings.hintsAllowed
-
+  });
   const [stock, setStock] = useState([]);
   const [waste, setWaste] = useState([]);
   const [foundation, setFoundation] = useState([[], [], [], []]);
@@ -450,7 +451,6 @@ const MainFeature = ({ difficulty, onRestart }) => {
       for (let j = i; j < 7; j++) {
         const card = shuffledDeck.pop();
         if (i === j) {
-          card.faceUp = true; // Flip the top card
         }
         newTableau[j].push(card);
       <MusicControls />
