@@ -295,6 +295,8 @@ const WasteCard = ({ card, isTopCard, style, onCardDrop }) => {
 
   const suitColors = {
     hearts: 'text-red-500',
+  });
+
     diamonds: 'text-red-500',
     clubs: 'text-surface-900 dark:text-white',
     spades: 'text-surface-900 dark:text-white',
@@ -374,86 +376,6 @@ const MainFeature = ({ difficulty, onRestart }) => {
     isGameWon: false,
     hintsUsed: 0,
     hintsRemaining: settings.hintsAllowed
-function MusicControls() {
-  const [isPlaying, setIsPlaying] = useState(!soundManager.musicMuted);
-  const [volume, setVolume] = useState(soundManager.musicVolume);
-  const [showControls, setShowControls] = useState(false);
-  const playerRef = useRef(null);
-  const playerContainerRef = useRef(null);
-
-  useEffect(() => {
-    // Load YouTube API script
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    
-    // Initialize YouTube player when API is ready
-    window.onYouTubeIframeAPIReady = () => {
-      playerRef.current = new YT.Player(playerContainerRef.current, {
-        height: '0',
-        width: '0',
-        videoId: 'P8aChRu31YY', // The YouTube video ID from the provided link
-        playerVars: {
-          autoplay: !soundManager.musicMuted ? 1 : 0,
-          controls: 0,
-          disablekb: 1,
-          fs: 0,
-          iv_load_policy: 3,
-          loop: 1,
-          playlist: 'P8aChRu31YY', // Same video ID for looping
-          modestbranding: 1,
-          rel: 0
-        },
-        events: {
-          onReady: (event) => {
-            soundManager.initMusicPlayer(event.target);
-            // Update UI state based on saved preferences
-            setIsPlaying(!soundManager.musicMuted);
-          }
-        }
-      });
-    };
-
-    return () => {
-      // Clean up
-      window.onYouTubeIframeAPIReady = null;
-      if (playerRef.current) {
-        playerRef.current = null;
-      }
-    };
-  }, []);
-
-  const togglePlay = () => {
-    if (isPlaying) {
-      soundManager.pauseMusic();
-    } else {
-      soundManager.playMusic();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleVolumeChange = (e) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    soundManager.setMusicVolume(newVolume);
-  };
-
-  return (
-    <div className="music-controls-container">
-      <button onClick={() => setShowControls(!showControls)} className="music-toggle-btn">
-        {isPlaying ? <VolumeIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}
-      </button>
-      <div className={`music-controls-panel ${showControls ? 'show' : ''}`}>
-        <button onClick={togglePlay} className="music-play-btn">{isPlaying ? <PauseIcon className="h-5 w-5" /> : <PlayIcon className="h-5 w-5" />}</button>
-        <input type="range" min="0" max="1" step="0.01" value={volume} onChange={handleVolumeChange} className="music-volume-slider" />
-        <div ref={playerContainerRef} id="youtube-player" className="youtube-player-container"></div>
-      </div>
-    </div>
-  );
-}
-
-  });
 
   const [stock, setStock] = useState([]);
   const [waste, setWaste] = useState([]);
